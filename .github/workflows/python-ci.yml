@@ -33,4 +33,4 @@ jobs:
 
     - name: Pruebas Unitarias y Cobertura (JUnit + JaCoCo)
       run: |
-        uv run pytest app/ --cov=app --cov-report=term-missing --cov-fail-under=80
+       uv run pytest test/ --cov=app --cov-report=term-missing --cov-fail-under=80

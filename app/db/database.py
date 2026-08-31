@@ -3,9 +3,12 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.core.db_config import db_settings
 
-connect_args = {}
-if db_settings.db_ssl_mode == "require":
-    connect_args = {"ssl": "require"}
+
+def get_connect_args(ssl_mode: str) -> dict:
+    return {"ssl": "require"} if ssl_mode == "require" else {}
+
+
+connect_args = get_connect_args(db_settings.db_ssl_mode)
 
 engine = create_async_engine(
     db_settings.database_url,

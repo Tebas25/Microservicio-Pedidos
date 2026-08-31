@@ -32,12 +32,5 @@ jobs:
         uv run flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
 
     - name: Pruebas Unitarias y Cobertura (JUnit + JaCoCo)
-      env:
-        DB_USER: test_user
-        DB_PASSWORD: test_password
-        DB_HOST: localhost
-        DB_NAME: test_db
-        DB_PORT: "5432"
-        DB_SSL_MODE: disable
       run: |
        uv run pytest test/ --cov=app --cov-report=term-missing --cov-fail-under=80

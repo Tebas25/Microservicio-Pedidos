@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
 app = FastAPI(
-    title="API Bartender Robótico - Módulo Multimodal",
-    description="Estructura base de la API local.",
+    title="APP Bartender Robótico - Microservicio de catálogo",
+    description="Microservicio encargado de la gestión de catálogo",
     version="1.0.0",
 )
 

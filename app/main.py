@@ -8,6 +8,7 @@ app = FastAPI(
 )
 app.include_router(catalog_router)
 
+
 @app.get("/")
 async def root():
     return {"status": "ok", "message": "Estructura base configurada y en línea."}

@@ -5,10 +5,9 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.api.add_catalog_item import router
-from app.dependencies import get_cobot_repository
+from app.api.endpoints import router
+from app.api.dependencies import get_cobot_repository
 from app.models.db_exceptions import CobotNotFoundError, ItemAlreadyExistsError
-
 
 PAYLOAD_VALIDO = {
     "nombre_item": "Mojito",

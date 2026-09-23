@@ -1,6 +1,6 @@
 from unittest.mock import AsyncMock
 
-from app.dependencies import get_cobot_repository
+from app.api.dependencies import get_cobot_repository
 from app.repositories.catalog_respository import CatalogRepository
 
 

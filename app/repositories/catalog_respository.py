@@ -56,3 +56,20 @@ class CatalogRepository:
                 raise ItemAlreadyExistsError(nombre_item, id_cobot) from exc
 
             raise
+
+    async def update_item_status(
+        self, item_state: bool, item_name: str, id_cobot: str
+    ) -> None:
+        try:
+            await self.db.execute(
+                text("CALL update_menu_item_state(:item_state, :item_name, :id_cobot)"),
+                {
+                    "item_state": item_state,
+                    "item_name": item_name,
+                    "id_cobot": id_cobot,
+                },
+            )
+            await self.db.commit()
+        except DBAPIError as exc:
+            await self.db.rollback()
+            raise RuntimeError()

@@ -62,6 +62,7 @@ async def test_get_menu_pasa_el_id_cobot_como_parametro():
     args, kwargs = mock_db.execute.call_args
     assert args[1] == {"p_id_cobot": "CBT999"}
 
+
 def _hacer_dbapi_error(mensaje_original: str) -> DBAPIError:
     """Construye un DBAPIError simulando el mensaje que vendría de Postgres."""
     orig = Exception(mensaje_original)
@@ -179,3 +180,60 @@ async def test_add_item_propaga_errores_no_reconocidos():
         )
 
     mock_db.rollback.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_update_item_status_exitoso_hace_commit():
+    mock_db = AsyncMock()
+
+    repo = CatalogRepository(mock_db)
+    await repo.update_item_status(
+        item_state=False,
+        item_name="Mojito",
+        id_cobot="CBT001",
+    )
+
+    mock_db.execute.assert_awaited_once()
+    mock_db.commit.assert_awaited_once()
+    mock_db.rollback.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_update_item_status_pasa_los_parametros_correctos():
+    mock_db = AsyncMock()
+
+    repo = CatalogRepository(mock_db)
+    await repo.update_item_status(
+        item_state=True,
+        item_name="Pizza",
+        id_cobot="CBT002",
+    )
+
+    args, _ = mock_db.execute.call_args
+    parametros = args[1]
+    assert parametros == {
+        "item_state": True,
+        "item_name": "Pizza",
+        "id_cobot": "CBT002",
+    }
+
+
+@pytest.mark.asyncio
+async def test_update_item_status_lanza_runtime_error_si_falla_db():
+    mock_db = AsyncMock()
+    orig = Exception("boom")
+    mock_db.execute.side_effect = DBAPIError(
+        "CALL update_menu_item_state(...)", {}, orig
+    )
+
+    repo = CatalogRepository(mock_db)
+
+    with pytest.raises(RuntimeError):
+        await repo.update_item_status(
+            item_state=True,
+            item_name="Mojito",
+            id_cobot="CBT001",
+        )
+
+    mock_db.rollback.assert_awaited_once()
+    mock_db.commit.assert_not_awaited()

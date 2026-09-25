@@ -10,6 +10,21 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - name: Checkout del repositorio
       uses: actions/checkout@v4
@@ -26,11 +41,29 @@ jobs:
     - name: Instalar dependencias del proyecto
       run: uv sync --all-extras --dev
 
-    - name: Análisis de Código y Estilo (CheckStyle + PMD)
+    - name: Análisis de Código y Estilo
       run: |
         uv run black --check app/
         uv run flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
 
-    - name: Pruebas Unitarias y Cobertura (JUnit + JaCoCo)
+    - name: Pruebas Unitarias
+      env:
+        DB_USER: test_user
+        DB_PASSWORD: test_password
+        DB_HOST: localhost
+        DB_NAME: test_db
+        DB_PORT: "5432"
+        DB_SSL_MODE: disable
       run: |
-       uv run pytest test/ --cov=app --cov-report=term-missing --cov-fail-under=80
+        uv run pytest test/unit/ --cov=app --cov-report=term-missing
+
+    - name: Pruebas de Integración
+      env:
+        DB_USER: test_user
+        DB_PASSWORD: test_password
+        DB_HOST: localhost
+        DB_NAME: test_db
+        DB_PORT: "5432"
+        DB_SSL_MODE: disable
+      run: |
+        uv run pytest test/integration/ --cov=app --cov-append --cov-report=term-missing --cov-fail-under=80

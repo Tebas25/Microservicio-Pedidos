@@ -212,9 +212,9 @@ async def test_update_item_status_pasa_los_parametros_correctos():
     args, _ = mock_db.execute.call_args
     parametros = args[1]
     assert parametros == {
-        "item_state": True,
-        "item_name": "Pizza",
-        "id_cobot": "CBT002",
+        "p_item_state": True,
+        "p_item_name": "Pizza",
+        "p_id_cobot": "CBT002",
     }
 
 

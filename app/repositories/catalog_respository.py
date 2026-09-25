@@ -62,11 +62,34 @@ class CatalogRepository:
     ) -> None:
         try:
             await self.db.execute(
-                text("CALL update_menu_item_state(:item_state, :item_name, :id_cobot)"),
+                text(
+                    "CALL update_menu_item_state(:p_item_state, :p_item_name, :p_id_cobot)"
+                ),
                 {
-                    "item_state": item_state,
-                    "item_name": item_name,
-                    "id_cobot": id_cobot,
+                    "p_item_state": item_state,
+                    "p_item_name": item_name,
+                    "p_id_cobot": id_cobot,
+                },
+            )
+            await self.db.commit()
+        except DBAPIError as exc:
+            await self.db.rollback()
+            print(f"DBAPIError real: {exc}")
+            print(f"Orig: {exc.orig}")
+            raise RuntimeError()
+
+    async def update_item_price(
+        self, item_price: float, item_name: str, id_cobot: str
+    ) -> None:
+        try:
+            await self.db.execute(
+                text(
+                    "CALL update_menu_item_price(:p_precio_item, :p_item_name, :p_id_cobot)"
+                ),
+                {
+                    "p_precio_item": item_price,
+                    "p_item_name": item_name,
+                    "p_id_cobot": id_cobot,
                 },
             )
             await self.db.commit()

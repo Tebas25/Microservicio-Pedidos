@@ -7,6 +7,7 @@ from app.schemas.create_item_request import CreateItemRequest
 from app.models.db_exceptions import CobotNotFoundError, ItemAlreadyExistsError
 from app.schemas.catalog_dto import UpdateItemStatus
 from app.services.catalog_service import CatalogService
+from app.schemas.update_item_price_dto import UpdateItemPriceDTO
 from app.api.dependencies import get_catalog_service
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
@@ -52,6 +53,22 @@ async def update_item_estado(
         return {
             "status": "success",
             "message": f"Estado del ítem '{payload.item_name}' actualizado correctamente.",
+        }
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+
+@router.patch("/update-price", status_code=status.HTTP_200_OK)
+async def update_item_price(
+    payload: UpdateItemPriceDTO, service: CatalogService = Depends(get_catalog_service)
+):
+    try:
+        await service.update_item_price(payload)
+        return {
+            "success": "success",
+            "message": f"Precio del ítem '{payload.item_name}' actualizado correctamente.",
         }
     except RuntimeError as e:
         raise HTTPException(

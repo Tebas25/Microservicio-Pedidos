@@ -30,17 +30,39 @@ CREATE TABLE IF NOT EXISTS "item_menu" (
 );
 """
 
+# SP real, confirmado en producción (corrige ambigüedad, sin validación de existencia)
 UPDATE_SP_SQL = """
-CREATE OR REPLACE PROCEDURE update_menu_item_state(item_state BOOLEAN, item_name VARCHAR, id_cobot VARCHAR)
+CREATE OR REPLACE PROCEDURE update_menu_item_state(
+	p_item_state BOOLEAN,
+	p_item_name character varying,
+	p_id_cobot character varying
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
 	UPDATE item_menu
-	SET estado = item_state
+	SET estado = p_item_state
 	FROM cobots
-	WHERE cobots.id_cobot = item_menu.id_cobot AND item_menu.nombre_item = item_name;
+	WHERE p_id_cobot = item_menu.id_cobot AND item_menu.nombre_item = p_item_name;
 END;
-$$
+$$;
+"""
+
+# SP real, confirmado en producción (corrige ambigüedad, sin validación de existencia)
+UPDATE_PRICE_SP_SQL = """
+CREATE OR REPLACE PROCEDURE update_menu_item_price(
+	p_precio_item numeric,
+	p_item_name character varying,
+	p_id_cobot character varying
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+	UPDATE item_menu
+	SET precio_item = p_precio_item
+	WHERE item_menu.id_cobot = p_id_cobot AND item_menu.nombre_item = p_item_name;
+END;
+$$;
 """
 
 
@@ -54,6 +76,7 @@ async def engine():
             if statement.strip():
                 await conn.exec_driver_sql(statement)
         await conn.exec_driver_sql(UPDATE_SP_SQL)
+        await conn.exec_driver_sql(UPDATE_PRICE_SP_SQL)
 
     yield eng
 

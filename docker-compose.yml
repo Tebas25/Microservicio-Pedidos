@@ -1,0 +1,19 @@
+services:
+  api:
+    build: .
+    container_name: microservicio-catalogo
+    ports:
+      - "8102:8102"
+    env_file:
+      - .env
+    networks:
+      - shared_network
+    volumes:
+      - ./app:/app/app
+
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8102", "--reload"]
+    restart: unless-stopped
+networks:
+  shared_network:
+    external: true
+    name: red_tesis

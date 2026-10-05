@@ -13,7 +13,7 @@ from app.api.dependencies import get_catalog_service
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
 
-@router.get("/{id_cobot}/get", response_model=CobotCatalogResponse)
+@router.get("/get/{id_cobot}", response_model=CobotCatalogResponse)
 async def obtener_menu(
     id_cobot: str,
     repo: CatalogRepository = Depends(get_cobot_repository),

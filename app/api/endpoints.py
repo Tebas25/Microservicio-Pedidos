@@ -21,6 +21,7 @@ async def obtener_menu(
     items = await repo.get_menu(id_cobot)
     return CobotCatalogResponse(items=items, total=len(items))
 
+
 @router.get("/check-update/{id_cobot}", response_model=str)
 async def obtener_ultima_actualizacion(
     id_cobot: str,
@@ -28,6 +29,7 @@ async def obtener_ultima_actualizacion(
 ):
     date = await repo.get_last_update_date(id_cobot)
     return date
+
 
 @router.post("/add-item", status_code=status.HTTP_201_CREATED)
 async def crear_item(

@@ -20,6 +20,14 @@ class CatalogRepository:
         rows = result.mappings().all()
         return [CobotMenuItem.model_validate(dict(row)) for row in rows]
 
+    async def get_last_update_date(self, id_cobot: str) -> str:
+        result = await self.db.execute(
+            text("SELECT * FROM check_catalog_update(:p_id_cobot)"),
+            {"p_id_cobot": id_cobot},
+        )
+        rows = result.mappings().all()
+        return str(rows[0]["ultima_actualizacion_catalogo"])
+
     async def add_item(
         self,
         nombre_item: str,

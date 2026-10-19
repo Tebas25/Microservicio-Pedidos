@@ -1,12 +1,15 @@
 import os
 import pytest_asyncio
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
+load_dotenv()
+
 DATABASE_URL = (
     f"postgresql+asyncpg://"
-    f"{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}"
-    f"@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/{os.environ['DB_NAME']}"
+    f"{os.getenv('DB_USER', 'test_user')}:{os.getenv('DB_PASSWORD', 'test_password')}"
+    f"@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'test_db')}"
 )
 
 SCHEMA_SQL = """

@@ -6,11 +6,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.cobot_menu_item import CobotMenuItem
 from app.models.db_exceptions import CobotNotFoundError, ItemAlreadyExistsError
+from app.schemas.get_cobot_dto import CobotDto
 
 
 class CatalogRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    async def get_cobot(self) -> list[CobotDto]:
+        result = await self.db.execute(text("SELECT * FROM cobots"))
+        rows = result.mappings().all()
+        return [CobotDto.model_validate(dict(row)) for row in rows]
 
     async def get_menu(self, id_cobot: str) -> list[CobotMenuItem]:
         result = await self.db.execute(

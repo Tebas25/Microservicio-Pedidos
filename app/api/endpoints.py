@@ -6,11 +6,18 @@ from app.schemas.get_catalog_response import CobotCatalogResponse
 from app.schemas.create_item_request import CreateItemRequest
 from app.models.db_exceptions import CobotNotFoundError, ItemAlreadyExistsError
 from app.schemas.catalog_dto import UpdateItemStatus
+from app.schemas.get_cobot_dto import CobotListDto
 from app.services.catalog_service import CatalogService
 from app.schemas.update_item_price_dto import UpdateItemPriceDTO
 from app.api.dependencies import get_catalog_service
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
+
+
+@router.get("/cobots", response_model=CobotListDto)
+async def obtener_cobots(repo: CatalogRepository = Depends(get_cobot_repository)):
+    items = await repo.get_cobot()
+    return CobotListDto(items=items)
 
 
 @router.get("/get/{id_cobot}", response_model=CobotCatalogResponse)

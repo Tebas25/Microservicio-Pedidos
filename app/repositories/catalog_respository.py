@@ -40,7 +40,6 @@ class CatalogRepository:
         precio_item: Decimal,
         estado: bool,
         ingredientes: str,
-        codigo_modbus: str,
         id_cobot: str,
     ) -> None:
         try:
@@ -48,14 +47,13 @@ class CatalogRepository:
                 text(
                     "CALL add_menu_item("
                     ":p_nombre_item, :p_precio_item, :p_estado, "
-                    ":p_ingredientes, :p_codigo_modbus, :p_id_cobot)"
+                    ":p_ingredientes, :p_id_cobot)"
                 ),
                 {
                     "p_nombre_item": nombre_item,
                     "p_precio_item": precio_item,
                     "p_estado": estado,
                     "p_ingredientes": ingredientes,
-                    "p_codigo_modbus": codigo_modbus,
                     "p_id_cobot": id_cobot,
                 },
             )

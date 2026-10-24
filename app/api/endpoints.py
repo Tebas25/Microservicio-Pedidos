@@ -49,7 +49,6 @@ async def crear_item(
             precio_item=payload.precio_item,
             estado=payload.estado,
             ingredientes=payload.ingredientes,
-            codigo_modbus=payload.codigo_modbus,
             id_cobot=payload.id_cobot,
         )
     except CobotNotFoundError as exc:

@@ -7,5 +7,4 @@ class CreateItemRequest(BaseModel):
     precio_item: Decimal
     estado: bool
     ingredientes: str
-    codigo_modbus: str
     id_cobot: str

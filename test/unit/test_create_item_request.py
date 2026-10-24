@@ -36,7 +36,7 @@ def test_convierte_precio_numerico_a_decimal():
 
 @pytest.mark.parametrize(
     "campo_faltante",
-    ["nombre_item", "precio_item", "estado", "ingredientes", "codigo_modbus", "id_cobot"],
+    ["nombre_item", "precio_item", "estado", "ingredientes", "id_cobot"],
 )
 def test_falla_si_falta_algun_campo_obligatorio(campo_faltante):
     datos = {
@@ -44,9 +44,9 @@ def test_falla_si_falta_algun_campo_obligatorio(campo_faltante):
         "precio_item": Decimal("5.50"),
         "estado": True,
         "ingredientes": "ron",
-        "codigo_modbus": "M010",
         "id_cobot": "CBT001",
     }
+
     del datos[campo_faltante]
 
     with pytest.raises(ValidationError):

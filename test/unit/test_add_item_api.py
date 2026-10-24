@@ -14,7 +14,6 @@ PAYLOAD_VALIDO = {
     "precio_item": "5.50",
     "estado": True,
     "ingredientes": "ron, menta, limón",
-    "codigo_modbus": "M010",
     "id_cobot": "CBT001",
 }
 
@@ -51,7 +50,6 @@ def test_crear_item_llama_al_repositorio_con_los_datos_correctos(client, mock_re
         precio_item=Decimal("5.50"),
         estado=True,
         ingredientes="ron, menta, limón",
-        codigo_modbus="M010",
         id_cobot="CBT001",
     )
 

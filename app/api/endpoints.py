@@ -6,11 +6,18 @@ from app.schemas.get_catalog_response import CobotCatalogResponse
 from app.schemas.create_item_request import CreateItemRequest
 from app.models.db_exceptions import CobotNotFoundError, ItemAlreadyExistsError
 from app.schemas.catalog_dto import UpdateItemStatus
+from app.schemas.get_cobot_dto import CobotListDto
 from app.services.catalog_service import CatalogService
 from app.schemas.update_item_price_dto import UpdateItemPriceDTO
 from app.api.dependencies import get_catalog_service
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
+
+
+@router.get("/cobots", response_model=CobotListDto)
+async def obtener_cobots(repo: CatalogRepository = Depends(get_cobot_repository)):
+    items = await repo.get_cobot()
+    return CobotListDto(items=items)
 
 
 @router.get("/get/{id_cobot}", response_model=CobotCatalogResponse)
@@ -20,6 +27,15 @@ async def obtener_menu(
 ):
     items = await repo.get_menu(id_cobot)
     return CobotCatalogResponse(items=items, total=len(items))
+
+
+@router.get("/check-update/{id_cobot}", response_model=str)
+async def obtener_ultima_actualizacion(
+    id_cobot: str,
+    repo: CatalogRepository = Depends(get_cobot_repository),
+):
+    date = await repo.get_last_update_date(id_cobot)
+    return date
 
 
 @router.post("/add-item", status_code=status.HTTP_201_CREATED)
@@ -33,7 +49,6 @@ async def crear_item(
             precio_item=payload.precio_item,
             estado=payload.estado,
             ingredientes=payload.ingredientes,
-            codigo_modbus=payload.codigo_modbus,
             id_cobot=payload.id_cobot,
         )
     except CobotNotFoundError as exc:

@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
 
@@ -17,7 +18,6 @@ async def test_get_menu_retorna_lista_de_items_mapeados():
         "precio_item": Decimal("10.50"),
         "estado": True,
         "ingredientes": "queso, tomate",
-        "codigo_modbus": "M001",
     }
 
     mock_result = MagicMock()
@@ -79,7 +79,6 @@ async def test_add_item_exitoso_hace_commit():
         precio_item=Decimal("5.50"),
         estado=True,
         ingredientes="ron, menta",
-        codigo_modbus="M010",
         id_cobot="CBT001",
     )
 
@@ -98,7 +97,6 @@ async def test_add_item_pasa_los_parametros_correctos():
         precio_item=Decimal("5.50"),
         estado=True,
         ingredientes="ron, menta",
-        codigo_modbus="M010",
         id_cobot="CBT001",
     )
 
@@ -109,7 +107,6 @@ async def test_add_item_pasa_los_parametros_correctos():
         "p_precio_item": Decimal("5.50"),
         "p_estado": True,
         "p_ingredientes": "ron, menta",
-        "p_codigo_modbus": "M010",
         "p_id_cobot": "CBT001",
     }
 
@@ -127,7 +124,6 @@ async def test_add_item_lanza_cobot_not_found_error():
             precio_item=Decimal("5.50"),
             estado=True,
             ingredientes="ron",
-            codigo_modbus="M010",
             id_cobot="CBT999",
         )
 
@@ -151,7 +147,6 @@ async def test_add_item_lanza_item_already_exists_error():
             precio_item=Decimal("5.50"),
             estado=True,
             ingredientes="ron",
-            codigo_modbus="M010",
             id_cobot="CBT001",
         )
 
@@ -175,7 +170,6 @@ async def test_add_item_propaga_errores_no_reconocidos():
             precio_item=Decimal("5.50"),
             estado=True,
             ingredientes="ron",
-            codigo_modbus="M010",
             id_cobot="CBT001",
         )
 
@@ -237,3 +231,113 @@ async def test_update_item_status_lanza_runtime_error_si_falla_db():
 
     mock_db.rollback.assert_awaited_once()
     mock_db.commit.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_get_last_update_date_retorna_fecha_como_string():
+    fecha = datetime(2026, 10, 17, 12, 30, 0)
+
+    mock_result = MagicMock()
+    mock_result.mappings.return_value.all.return_value = [
+        {"ultima_actualizacion_catalogo": fecha}
+    ]
+
+    mock_db = AsyncMock()
+    mock_db.execute.return_value = mock_result
+
+    repo = CatalogRepository(mock_db)
+    resultado = await repo.get_last_update_date("CBT001")
+
+    assert isinstance(resultado, str)
+    assert resultado == str(fecha)
+
+
+@pytest.mark.asyncio
+async def test_get_last_update_date_mantiene_valor_si_ya_es_string():
+    mock_result = MagicMock()
+    mock_result.mappings.return_value.all.return_value = [
+        {"ultima_actualizacion_catalogo": "2026-10-17 12:30:00"}
+    ]
+
+    mock_db = AsyncMock()
+    mock_db.execute.return_value = mock_result
+
+    repo = CatalogRepository(mock_db)
+    resultado = await repo.get_last_update_date("CBT001")
+
+    assert resultado == "2026-10-17 12:30:00"
+
+
+@pytest.mark.asyncio
+async def test_get_last_update_date_pasa_el_id_cobot_como_parametro():
+    mock_result = MagicMock()
+    mock_result.mappings.return_value.all.return_value = [
+        {"ultima_actualizacion_catalogo": "2026-10-17"}
+    ]
+
+    mock_db = AsyncMock()
+    mock_db.execute.return_value = mock_result
+
+    repo = CatalogRepository(mock_db)
+    await repo.get_last_update_date("CBT999")
+
+    mock_db.execute.assert_awaited_once()
+    args, _ = mock_db.execute.call_args
+    assert "check_catalog_update" in str(args[0])
+    assert args[1] == {"p_id_cobot": "CBT999"}
+
+
+@pytest.mark.asyncio
+async def test_get_last_update_date_usa_solo_la_primera_fila():
+    mock_result = MagicMock()
+    mock_result.mappings.return_value.all.return_value = [
+        {"ultima_actualizacion_catalogo": "primera"},
+        {"ultima_actualizacion_catalogo": "segunda"},
+    ]
+
+    mock_db = AsyncMock()
+    mock_db.execute.return_value = mock_result
+
+    repo = CatalogRepository(mock_db)
+    resultado = await repo.get_last_update_date("CBT001")
+
+    assert resultado == "primera"
+
+
+@pytest.mark.asyncio
+async def test_get_last_update_date_lanza_index_error_si_no_hay_filas():
+    mock_result = MagicMock()
+    mock_result.mappings.return_value.all.return_value = []
+
+    mock_db = AsyncMock()
+    mock_db.execute.return_value = mock_result
+
+    repo = CatalogRepository(mock_db)
+
+    with pytest.raises(IndexError):
+        await repo.get_last_update_date("CBT_NO_EXISTE")
+
+
+@pytest.mark.asyncio
+async def test_get_last_update_date_lanza_key_error_si_falta_la_columna():
+    mock_result = MagicMock()
+    mock_result.mappings.return_value.all.return_value = [{"otra_columna": "valor"}]
+
+    mock_db = AsyncMock()
+    mock_db.execute.return_value = mock_result
+
+    repo = CatalogRepository(mock_db)
+
+    with pytest.raises(KeyError):
+        await repo.get_last_update_date("CBT001")
+
+
+@pytest.mark.asyncio
+async def test_get_last_update_date_propaga_error_de_base_de_datos():
+    mock_db = AsyncMock()
+    mock_db.execute.side_effect = _hacer_dbapi_error("connection lost")
+
+    repo = CatalogRepository(mock_db)
+
+    with pytest.raises(DBAPIError):
+        await repo.get_last_update_date("CBT001")

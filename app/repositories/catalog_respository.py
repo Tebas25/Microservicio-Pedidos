@@ -6,11 +6,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.cobot_menu_item import CobotMenuItem
 from app.models.db_exceptions import CobotNotFoundError, ItemAlreadyExistsError
+from app.schemas.get_cobot_dto import CobotDto
 
 
 class CatalogRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    async def get_cobot(self) -> list[CobotDto]:
+        result = await self.db.execute(text("SELECT * FROM cobots"))
+        rows = result.mappings().all()
+        return [CobotDto.model_validate(dict(row)) for row in rows]
 
     async def get_menu(self, id_cobot: str) -> list[CobotMenuItem]:
         result = await self.db.execute(
@@ -20,13 +26,20 @@ class CatalogRepository:
         rows = result.mappings().all()
         return [CobotMenuItem.model_validate(dict(row)) for row in rows]
 
+    async def get_last_update_date(self, id_cobot: str) -> str:
+        result = await self.db.execute(
+            text("SELECT * FROM check_catalog_update(:p_id_cobot)"),
+            {"p_id_cobot": id_cobot},
+        )
+        rows = result.mappings().all()
+        return str(rows[0]["ultima_actualizacion_catalogo"])
+
     async def add_item(
         self,
         nombre_item: str,
         precio_item: Decimal,
         estado: bool,
         ingredientes: str,
-        codigo_modbus: str,
         id_cobot: str,
     ) -> None:
         try:
@@ -34,14 +47,13 @@ class CatalogRepository:
                 text(
                     "CALL add_menu_item("
                     ":p_nombre_item, :p_precio_item, :p_estado, "
-                    ":p_ingredientes, :p_codigo_modbus, :p_id_cobot)"
+                    ":p_ingredientes, :p_id_cobot)"
                 ),
                 {
                     "p_nombre_item": nombre_item,
                     "p_precio_item": precio_item,
                     "p_estado": estado,
                     "p_ingredientes": ingredientes,
-                    "p_codigo_modbus": codigo_modbus,
                     "p_id_cobot": id_cobot,
                 },
             )

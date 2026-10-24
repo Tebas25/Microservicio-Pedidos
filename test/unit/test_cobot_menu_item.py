@@ -19,16 +19,14 @@ def test_crea_item_desde_diccionario():
     assert item.estado is True
 
 
-def test_permite_ingredientes_y_codigo_modbus_nulos():
+def test_permite_ingredientes_nulos():
     item = CobotMenuItem(
         nombre_item="Agua",
         precio_item=Decimal("1.00"),
         estado=True,
         ingredientes=None,
-        codigo_modbus=None,
     )
     assert item.ingredientes is None
-    assert item.codigo_modbus is None
 
 
 def test_falla_si_falta_campo_obligatorio():

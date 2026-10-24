@@ -18,7 +18,6 @@ async def test_get_menu_retorna_lista_de_items_mapeados():
         "precio_item": Decimal("10.50"),
         "estado": True,
         "ingredientes": "queso, tomate",
-        "codigo_modbus": "M001",
     }
 
     mock_result = MagicMock()
@@ -80,7 +79,6 @@ async def test_add_item_exitoso_hace_commit():
         precio_item=Decimal("5.50"),
         estado=True,
         ingredientes="ron, menta",
-        codigo_modbus="M010",
         id_cobot="CBT001",
     )
 
@@ -99,7 +97,6 @@ async def test_add_item_pasa_los_parametros_correctos():
         precio_item=Decimal("5.50"),
         estado=True,
         ingredientes="ron, menta",
-        codigo_modbus="M010",
         id_cobot="CBT001",
     )
 
@@ -110,7 +107,6 @@ async def test_add_item_pasa_los_parametros_correctos():
         "p_precio_item": Decimal("5.50"),
         "p_estado": True,
         "p_ingredientes": "ron, menta",
-        "p_codigo_modbus": "M010",
         "p_id_cobot": "CBT001",
     }
 
@@ -128,7 +124,6 @@ async def test_add_item_lanza_cobot_not_found_error():
             precio_item=Decimal("5.50"),
             estado=True,
             ingredientes="ron",
-            codigo_modbus="M010",
             id_cobot="CBT999",
         )
 
@@ -152,7 +147,6 @@ async def test_add_item_lanza_item_already_exists_error():
             precio_item=Decimal("5.50"),
             estado=True,
             ingredientes="ron",
-            codigo_modbus="M010",
             id_cobot="CBT001",
         )
 
@@ -176,7 +170,6 @@ async def test_add_item_propaga_errores_no_reconocidos():
             precio_item=Decimal("5.50"),
             estado=True,
             ingredientes="ron",
-            codigo_modbus="M010",
             id_cobot="CBT001",
         )
 
@@ -238,6 +231,7 @@ async def test_update_item_status_lanza_runtime_error_si_falla_db():
 
     mock_db.rollback.assert_awaited_once()
     mock_db.commit.assert_not_awaited()
+
 
 @pytest.mark.asyncio
 async def test_get_last_update_date_retorna_fecha_como_string():

@@ -26,11 +26,20 @@ async def test_update_item_price_exitoso_actualiza_en_bd_real(db_session, seed_d
     assert result.scalar_one() == Decimal("8.25")
 
 
-@pytest.mark.xfail(
-    reason="PENDIENTE: update_menu_item_price aún no valida existencia del ítem "
-    "(falta el IF NOT EXISTS + RAISE EXCEPTION, a corregir después).",
-    strict=True,
-)
+@pytest.mark.asyncio
+async def test_update_item_price_deberia_fallar_si_item_no_existe(
+    db_session, seed_data
+):
+    repo = CatalogRepository(db_session)
+
+    with pytest.raises(RuntimeError):
+        await repo.update_item_price(
+            item_price=Decimal("8.25"),
+            item_name="ItemInexistente",
+            id_cobot="CBT001",
+        )
+
+
 @pytest.mark.asyncio
 async def test_update_item_price_deberia_fallar_si_item_no_existe(
     db_session, seed_data
@@ -47,30 +56,21 @@ async def test_update_item_price_deberia_fallar_si_item_no_existe(
 
 @pytest.mark.asyncio
 async def test_update_item_price_no_afecta_items_de_otro_cobot(db_session, seed_data):
-    """
-    Confirma que el fix de ambigüedad de columna también corrigió el
-    aislamiento entre cobots: CBT002 ya no puede cambiar el precio de
-    un ítem que pertenece a CBT001.
-    """
     repo = CatalogRepository(db_session)
 
-    await repo.update_item_price(
-        item_price=Decimal("99.99"),
-        item_name="Mojito",
-        id_cobot="CBT002",  # cobot equivocado
-    )
+    with pytest.raises(RuntimeError):
+        await repo.update_item_price(
+            item_price=Decimal("99.99"),
+            item_name="Mojito",
+            id_cobot="CBT002",
+        )
 
     result = await db_session.execute(text("""
-            SELECT cc.precio_item 
-            FROM cobot_catalog cc
-            JOIN catalog_item ci ON cc.id_item = ci.id_item
-            WHERE ci.nombre_item = 'Mojito' AND cc.id_cobot = 'CBT001'
-        """))
-    precio_actual = Decimal(result.scalar_one())
+        SELECT cc.precio_item
+        FROM public.cobot_catalog cc
+        JOIN public.catalog_item ci ON cc.id_item = ci.id_item
+        WHERE ci.nombre_item = 'Mojito'
+          AND cc.id_cobot = 'CBT001'
+    """))
 
-    # El precio NO debe haber cambiado, porque el WHERE ahora sí filtra
-    # correctamente por id_cobot.
-    assert precio_actual == 5.50, (
-        "Si esto falla con 99.99, el filtro por id_cobot no está "
-        "funcionando como se esperaba."
-    )
+    assert result.scalar_one() == Decimal("5.50")

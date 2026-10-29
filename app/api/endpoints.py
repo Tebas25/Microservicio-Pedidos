@@ -86,33 +86,33 @@ async def add_item_to_catalog(
     return {"mensaje": "Item agregado a menu correctamente"}
 
 
-# @router.patch("/update-state", status_code=status.HTTP_200_OK)
-# async def update_item_estado(
-#     payload: UpdateItemStatus, service: CatalogService = Depends(get_catalog_service)
-# ):
-#     try:
-#         await service.update_item_state(payload)
-#         return {
-#             "status": "success",
-#             "message": f"Estado del ítem '{payload.item_name}' actualizado correctamente.",
-#         }
-#     except RuntimeError as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-#         )
-#
-#
-# @router.patch("/update-price", status_code=status.HTTP_200_OK)
-# async def update_item_price(
-#     payload: UpdateItemPriceDTO, service: CatalogService = Depends(get_catalog_service)
-# ):
-#     try:
-#         await service.update_item_price(payload)
-#         return {
-#             "success": "success",
-#             "message": f"Precio del ítem '{payload.item_name}' actualizado correctamente.",
-#         }
-#     except RuntimeError as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-#         )
+@router.patch("/update-state", status_code=status.HTTP_200_OK)
+async def update_item_estado(
+    payload: UpdateItemStatus, service: CatalogService = Depends(get_catalog_service)
+):
+    try:
+        await service.update_item_state(payload)
+        return {
+            "status": "success",
+            "message": f"Estado del ítem '{payload.item_name}' actualizado correctamente.",
+        }
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+
+@router.patch("/update-price", status_code=status.HTTP_200_OK)
+async def update_item_price(
+    payload: UpdateItemPriceDTO, service: CatalogService = Depends(get_catalog_service)
+):
+    try:
+        await service.update_item_price(payload)
+        return {
+            "success": "success",
+            "message": f"Precio del ítem '{payload.item_name}' actualizado correctamente.",
+        }
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )

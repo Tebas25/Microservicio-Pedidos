@@ -3,7 +3,6 @@ from decimal import Decimal
 from app.models.cobot_menu_item import CobotMenuItem
 from app.schemas.get_catalog_response import CobotCatalogResponse
 
-
 def test_response_con_items_y_total_correctos():
     items = [
         CobotMenuItem(
@@ -11,7 +10,8 @@ def test_response_con_items_y_total_correctos():
             precio_item=Decimal("10.0"),
             estado=True,
             ingredientes="queso",
-            codigo_modbus="M001",
+            codigo_modbus=1,
+            imagen="https://example.com",
         )
     ]
     response = CobotCatalogResponse(items=items, total=len(items))

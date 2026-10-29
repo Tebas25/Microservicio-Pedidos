@@ -4,8 +4,12 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.cobot_menu_item import CobotMenuItem
-from app.models.db_exceptions import CobotNotFoundError, ItemAlreadyExistsError
+from app.models.cobot_menu_item import CobotMenuItem, MenuItem
+from app.models.db_exceptions import (
+    CobotNotFoundError,
+    ItemAlreadyExistsError,
+    ItemNotFoundError,
+)
 from app.schemas.get_cobot_dto import CobotDto
 
 
@@ -26,6 +30,11 @@ class CatalogRepository:
         rows = result.mappings().all()
         return [CobotMenuItem.model_validate(dict(row)) for row in rows]
 
+    async def get_all_items(self) -> list[MenuItem]:
+        result = await self.db.execute(text("SELECT * FROM get_all_items()"))
+        rows = result.mappings().all()
+        return [MenuItem.model_validate(dict(row)) for row in rows]
+
     async def get_last_update_date(self, id_cobot: str) -> str:
         result = await self.db.execute(
             text("SELECT * FROM check_catalog_update(:p_id_cobot)"),
@@ -37,24 +46,21 @@ class CatalogRepository:
     async def add_item(
         self,
         nombre_item: str,
-        precio_item: Decimal,
-        estado: bool,
         ingredientes: str,
-        id_cobot: str,
+        imagen: str,
+        codigo_modbus: int,
     ) -> None:
         try:
             await self.db.execute(
                 text(
-                    "CALL add_menu_item("
-                    ":p_nombre_item, :p_precio_item, :p_estado, "
-                    ":p_ingredientes, :p_id_cobot)"
+                    "CALL create_item("
+                    ":p_nombre_item, :p_ingredientes, :p_imagen, :p_codigo_modbus)"
                 ),
                 {
                     "p_nombre_item": nombre_item,
-                    "p_precio_item": precio_item,
-                    "p_estado": estado,
                     "p_ingredientes": ingredientes,
-                    "p_id_cobot": id_cobot,
+                    "p_imagen": imagen,
+                    "p_codigo_modbus": codigo_modbus,
                 },
             )
             await self.db.commit()
@@ -62,11 +68,32 @@ class CatalogRepository:
             await self.db.rollback()
             mensaje = str(exc.orig) if exc.orig else str(exc)
 
-            if "doesnt exist" in mensaje:
-                raise CobotNotFoundError(id_cobot) from exc
             if "already exists" in mensaje:
-                raise ItemAlreadyExistsError(nombre_item, id_cobot) from exc
+                raise ItemAlreadyExistsError(nombre_item) from exc
 
+            raise
+
+    async def add_item_to_catalog(
+        self, id_cobot: str, nombre_item: str, precio_item: Decimal
+    ) -> None:
+        try:
+            await self.db.execute(
+                text(
+                    "CALL add_item_to_cobot_catalog(:p_id_cobot, :p_nombre_item, :p_precio_item)"
+                ),
+                {
+                    "p_id_cobot": id_cobot,
+                    "p_nombre_item": nombre_item,
+                    "p_precio_item": precio_item,
+                },
+            )
+            await self.db.commit()
+        except DBAPIError as exc:
+            await self.db.rollback()
+            mensaje = str(exc.orig) if exc.orig else str(exc)
+
+            if "no existe" in mensaje:
+                raise ItemNotFoundError(nombre_item) from exc
             raise
 
     async def update_item_status(
